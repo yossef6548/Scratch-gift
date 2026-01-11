@@ -54,12 +54,12 @@
     /* Hand image pointer that follows the finger */
     #handPointer{
       position:absolute;
-      width:140px;           /* change size here */
+      width:70px;            /* 50% smaller */
       height:auto;
       pointer-events:none;
       opacity:1;             /* shown only while scratching */
       filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
-      transform: translate(-50%, -50%); /* we position by center-ish */
+      transform: translate(-100%, -100%) rotate(90deg); /* bottom-right at finger */
       user-select:none;
       -webkit-user-select:none;
       -webkit-user-drag:none;
@@ -167,7 +167,10 @@
     pointer.style.opacity = '1';
     const {x,y} = getPosFromEvent(e);
     movePointer(x,y);
-    scratchAt(x,y);
+    // Scratch at top-left corner of hand (opposite of finger)
+    const rect = pointer.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
   }
 
   function onMove(e){
@@ -175,7 +178,10 @@
     e.preventDefault();
     const {x,y} = getPosFromEvent(e);
     movePointer(x,y);
-    scratchAt(x,y);
+    // Scratch at top-left corner of hand (opposite of finger)
+    const rect = pointer.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
   }
 
   function onEnd(){
@@ -185,11 +191,9 @@
   }
 
   function movePointer(x,y){
-    // Your original logic offsets up/left so the finger doesn't block.
-    // With the photo, we still want the coin near the finger:
-    // Adjust these numbers until it feels perfect on iPhone.
-    pointer.style.left = (x - 35) + 'px';
-    pointer.style.top  = (y - 55) + 'px';
+    // Position so finger touches bottom-right corner of hand image
+    pointer.style.left = x + 'px';
+    pointer.style.top  = y + 'px';
   }
 
   // Touch events (iPhone)
@@ -204,13 +208,19 @@
     pointer.style.opacity = '1';
     const p = getPosFromEvent(e);
     movePointer(p.x,p.y);
-    scratchAt(p.x,p.y);
+    // Scratch at top-left corner of hand (opposite of cursor)
+    const rect = pointer.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
   });
   window.addEventListener('mousemove', (e)=>{
     if(!scratching) return;
     const p = getPosFromEvent(e);
     movePointer(p.x,p.y);
-    scratchAt(p.x,p.y);
+    // Scratch at top-left corner of hand (opposite of cursor)
+    const rect = pointer.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
   });
   window.addEventListener('mouseup', ()=>{
     scratching = false;
