@@ -54,7 +54,7 @@
     /* Hand image pointer that follows the finger */
     #handPointer{
       position:absolute;
-      width:70px;            /* 50% smaller */
+      width:50px;            /* 50% smaller */
       height:auto;
       pointer-events:none;
       opacity:1;             /* shown only while scratching */
@@ -74,7 +74,7 @@
 
       <!-- Replace SVG with your real image -->
       <!-- Upload your image as hand.jpg (or change the src below) -->
-      <img id="handPointer" src="hand.jpeg" alt="" aria-hidden="true" />
+      <img id="handPointer" src="hand.png" alt="" aria-hidden="true" />
     </div>
   </div>
 
@@ -86,7 +86,7 @@
   const ctx = canvas.getContext('2d', { willReadFrequently: false });
 
   // Settings
-  const SCRATCH_RADIUS = 26; // px on CSS pixels
+  const SCRATCH_RADIUS = 12; // px on CSS pixels
   const COVER_OPACITY = 1.0; // opaque
   const COVER_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--scratch').trim() || '#c8c8c8';
 
