@@ -5,13 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>🪙</title>
   <style>
-    : root{
+    :root{
       --bg:#ffffff;
       --scratch:#c8c8c8;       /* scratch layer color */
       --scratchBorder:#e6e6e6;
       --text:#7b5a6b;          /* matches the vibe of your image */
     }
-    html,body{height:100%; margin:0; background:var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;}
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
     .wrap{
       min-height:100%;
       display:flex;
@@ -46,15 +51,18 @@
       display:block;
     }
 
-    /* Coin+hand pointer (pure SVG) that follows the finger */
-    .pointer{
+    /* Hand image pointer that follows the finger */
+    #handPointer{
       position:absolute;
-      width:90px;
-      height:90px;
-      transform: translate(-50%, -50%);
+      width:140px;           /* change size here */
+      height:auto;
       pointer-events:none;
-      opacity:1; /* shown only while scratching */
+      opacity:1;             /* shown only while scratching */
       filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+      transform: translate(-50%, -50%); /* we position by center-ish */
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-user-drag:none;
     }
   </style>
 </head>
@@ -62,40 +70,11 @@
   <div class="wrap">
     <div class="card" id="card" aria-label="scratch card">
       <img class="reveal" src="reveal.jpg" alt="" />
-
       <canvas id="scratch"></canvas>
 
-      <!-- improved hand+coin SVG -->
-      <svg class="pointer" id="pointer" viewBox="0 0 100 100" aria-hidden="true">
-        <!-- Coin being held -->
-        <circle cx="50" cy="28" r="16" fill="#ffd700" stroke="#daa520" stroke-width="3"/>
-        <circle cx="50" cy="28" r="10" fill="none" stroke="#daa520" stroke-width="2" opacity=".6"/>
-        <text x="50" y="32" font-size="14" text-anchor="middle" fill="#daa520" font-weight="bold">₪</text>
-        
-        <!-- Hand (better proportions) -->
-        <!-- Thumb (left side) -->
-        <ellipse cx="36" cy="36" rx="8" ry="14" fill="#f4d3bc" stroke="#d4a892" stroke-width="2.5" transform="rotate(-25 36 36)"/>
-        
-        <!-- Palm -->
-        <path d="M 42 45 Q 45 38 52 38 Q 59 38 62 45 L 62 70 Q 60 78 52 80 Q 44 78 42 70 Z" 
-              fill="#f4d3bc" stroke="#d4a892" stroke-width="2.5"/>
-        
-        <!-- Index finger (holding coin from right) -->
-        <ellipse cx="64" cy="36" rx="7" ry="13" fill="#f4d3bc" stroke="#d4a892" stroke-width="2.5" transform="rotate(25 64 36)"/>
-        
-        <!-- Middle finger -->
-        <ellipse cx="52" cy="75" rx="6" ry="12" fill="#f4d3bc" stroke="#d4a892" stroke-width="2.5"/>
-        
-        <!-- Ring finger -->
-        <ellipse cx="44" cy="76" rx="5.5" ry="11" fill="#f4d3bc" stroke="#d4a892" stroke-width="2.5"/>
-        
-        <!-- Pinky -->
-        <ellipse cx="37" cy="74" rx="5" ry="9" fill="#f4d3bc" stroke="#d4a892" stroke-width="2.5"/>
-        
-        <!-- Finger details/creases -->
-        <path d="M 50 68 Q 52 68 54 68" stroke="#d4a892" stroke-width="1.5" fill="none" opacity="0.5"/>
-        <path d="M 42 69 Q 44 69 46 69" stroke="#d4a892" stroke-width="1.5" fill="none" opacity="0.5"/>
-      </svg>
+      <!-- Replace SVG with your real image -->
+      <!-- Upload your image as hand.jpg (or change the src below) -->
+      <img id="handPointer" src="hand.jpg" alt="" aria-hidden="true" />
     </div>
   </div>
 
@@ -103,7 +82,7 @@
 (() => {
   const canvas = document.getElementById('scratch');
   const card = document.getElementById('card');
-  const pointer = document.getElementById('pointer');
+  const pointer = document.getElementById('handPointer');
   const ctx = canvas.getContext('2d', { willReadFrequently: false });
 
   // Settings
@@ -117,12 +96,12 @@
 
     // match backing store to CSS size * dpr
     canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math. round(rect.height * dpr);
+    canvas.height = Math.round(rect.height * dpr);
     canvas.style.width = rect.width + 'px';
     canvas.style.height = rect.height + 'px';
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
-    drawCover(rect. width, rect.height);
+    drawCover(rect.width, rect.height);
   }
 
   function drawCover(w, h) {
@@ -130,7 +109,7 @@
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = COVER_OPACITY;
     ctx.fillStyle = COVER_COLOR;
-    ctx. fillRect(0, 0, w, h);
+    ctx.fillRect(0, 0, w, h);
 
     // subtle noise for "scratch" vibe
     const imgData = ctx.getImageData(0, 0, w, h);
@@ -145,12 +124,11 @@
     ctx.putImageData(imgData, 0, 0);
 
     // big prompt text ON the cover layer
-    ctx. globalAlpha = 1;
+    ctx.globalAlpha = 1;
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#7b5a6b';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Fit text nicely
     const lines = ["תגרדי", "אם את", "במוד"];
     const fontSize = Math.round(Math.min(w, h) * 0.11);
     ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial`;
@@ -167,7 +145,7 @@
     const rect = card.getBoundingClientRect();
     const touch = e.touches ? e.touches[0] : e;
     return {
-      x: touch. clientX - rect.left,
+      x: touch.clientX - rect.left,
       y: touch.clientY - rect.top
     };
   }
@@ -202,13 +180,16 @@
 
   function onEnd(){
     scratching = false;
-    //pointer.style.opacity = '0';
+    // keep it visible if you want, or hide:
+    // pointer.style.opacity = '0';
   }
 
   function movePointer(x,y){
-    // offset UP and to the LEFT so finger doesn't hide the coin+hand
+    // Your original logic offsets up/left so the finger doesn't block.
+    // With the photo, we still want the coin near the finger:
+    // Adjust these numbers until it feels perfect on iPhone.
     pointer.style.left = (x - 35) + 'px';
-    pointer.style.top  = (y - 45) + 'px';
+    pointer.style.top  = (y - 55) + 'px';
   }
 
   // Touch events (iPhone)
@@ -218,13 +199,34 @@
   card.addEventListener('touchcancel',onEnd,   { passive:true });
 
   // Mouse support (desktop preview)
-  card.addEventListener('mousedown', (e)=>{ scratching=true; pointer.style.opacity='1'; const p=getPosFromEvent(e); movePointer(p.x,p.y); scratchAt(p.x,p. y); });
-  window.addEventListener('mousemove', (e)=>{ if(!scratching) return; const p=getPosFromEvent(e); movePointer(p.x,p.y); scratchAt(p.x,p.y); });
-  window.addEventListener('mouseup', ()=>{ scratching=false; pointer.style.opacity='0'; });
+  card.addEventListener('mousedown', (e)=>{
+    scratching = true;
+    pointer.style.opacity = '1';
+    const p = getPosFromEvent(e);
+    movePointer(p.x,p.y);
+    scratchAt(p.x,p.y);
+  });
+  window.addEventListener('mousemove', (e)=>{
+    if(!scratching) return;
+    const p = getPosFromEvent(e);
+    movePointer(p.x,p.y);
+    scratchAt(p.x,p.y);
+  });
+  window.addEventListener('mouseup', ()=>{
+    scratching = false;
+    pointer.style.opacity = '0';
+  });
 
   // Resize
   window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
+
+  // Ensure the pointer image is loaded before first draw (safer on iPhone)
+  if (pointer.complete) {
+    resizeCanvas();
+  } else {
+    pointer.addEventListener('load', resizeCanvas);
+    pointer.addEventListener('error', resizeCanvas);
+  }
 })();
 </script>
 </body>
