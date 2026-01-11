@@ -172,7 +172,7 @@
     // So finger (x,y) is at bottom-right, and top-left is at (x - width, y - height)
     const handWidth = pointer.offsetWidth;
     const handHeight = pointer.offsetHeight;
-    scratchAt(x - handWidth/2, y - handHeight/2);
+    scratchAt(x - handWidth*0.7, y - handHeight*0.7);
   }
 
   function onMove(e){
@@ -183,7 +183,7 @@
     // Calculate top-left corner of hand image
     const handWidth = pointer.offsetWidth;
     const handHeight = pointer.offsetHeight;
-    scratchAt(x - handWidth/2, y - handHeight/2);
+    scratchAt(x - handWidth*0.7, y - handHeight*0.7);
   }
 
   function onEnd(){
@@ -213,7 +213,7 @@
     // Calculate top-left corner of hand image
     const handWidth = pointer.offsetWidth;
     const handHeight = pointer.offsetHeight;
-    scratchAt(p.x - handWidth/2, p.y - handHeight/2);
+    scratchAt(p.x - handWidth*0.7, p.y - handHeight*0.7);
   });
   window.addEventListener('mousemove', (e)=>{
     if(!scratching) return;
@@ -222,7 +222,7 @@
     // Calculate top-left corner of hand image
     const handWidth = pointer.offsetWidth;
     const handHeight = pointer.offsetHeight;
-    scratchAt(p.x - handWidth/2, p.y - handHeight/2);
+    scratchAt(p.x - handWidth*0.7, p.y - handHeight*0.7);
   });
   window.addEventListener('mouseup', ()=>{
     scratching = false;
