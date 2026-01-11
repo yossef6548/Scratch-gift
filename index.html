@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>🪙</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --scratch:#c8c8c8;       /* scratch layer color */
+      --scratchBorder:#e6e6e6;
+      --text:#7b5a6b;          /* matches the vibe of your image */
+    }
+    html,body{height:100%; margin:0; background:var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;}
+    .wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+               max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      box-sizing:border-box;
+    }
+    .card{
+      width:min(92vw, 520px);
+      aspect-ratio: 3 / 4;
+      position:relative;
+      border-radius:22px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      border: 1px solid var(--scratchBorder);
+      touch-action:none; /* IMPORTANT for iPhone: prevents scroll while scratching */
+      user-select:none;
+      -webkit-user-select:none;
+    }
+    .reveal{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    canvas#scratch{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      display:block;
+    }
+
+    /* Coin+hand pointer (pure SVG) that follows the finger */
+    .pointer{
+      position:absolute;
+      width:86px;
+      height:86px;
+      transform: translate(-50%, -50%);
+      pointer-events:none;
+      opacity:0; /* shown only while scratching */
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+    }
+
+    .hint{
+      position:absolute;
+      left:50%;
+      bottom:14px;
+      transform: translateX(-50%);
+      font-size:12px;
+      color: rgba(0,0,0,.45);
+      background: rgba(255,255,255,.75);
+      padding:6px 10px;
+      border-radius:999px;
+      backdrop-filter: blur(6px);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="card" aria-label="scratch card">
+      <img class="reveal" src="reveal.jpg" alt="" />
+
+      <canvas id="scratch"></canvas>
+
+      <!-- simple hand+coin SVG (looks good enough for iPhone) -->
+      <svg class="pointer" id="pointer" viewBox="0 0 120 120" aria-hidden="true">
+        <!-- coin -->
+        <circle cx="35" cy="35" r="18" fill="#d4b54a" stroke="#b8952d" stroke-width="4"/>
+        <circle cx="35" cy="35" r="9" fill="none" stroke="#b8952d" stroke-width="3" opacity=".7"/>
+        <!-- hand (stylized) -->
+        <path d="M45 72
+                 c 8 -10 18 -16 30 -18
+                 c 6 -1 11 2 12 7
+                 c 1 6 -3 10 -9 12
+                 l -10 3
+                 c -6 2 -10 6 -12 12
+                 l -3 10
+                 c -2 6 -8 10 -14 9
+                 c -7 -1 -11 -7 -10 -14
+                 c 1 -7 4 -14 16 -21 z"
+              fill="#f1c7b0" stroke="#e2a58b" stroke-width="3" />
+        <path d="M70 62 l 16 -5" stroke="#e2a58b" stroke-width="3" stroke-linecap="round"/>
+        <path d="M60 74 l 18 -6" stroke="#e2a58b" stroke-width="3" stroke-linecap="round"/>
+        <!-- small thumb detail -->
+        <path d="M50 70 c 4 -6 10 -10 17 -12" stroke="#e2a58b" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </svg>
+
+      <div class="hint">תגרדי עם האצבע 🪙</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('scratch');
+  const card = document.getElementById('card');
+  const pointer = document.getElementById('pointer');
+  const ctx = canvas.getContext('2d', { willReadFrequently: false });
+
+  // Settings
+  const SCRATCH_RADIUS = 26; // px on CSS pixels
+  const COVER_OPACITY = 1.0; // opaque
+  const COVER_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--scratch').trim() || '#c8c8c8';
+
+  function resizeCanvas() {
+    const rect = card.getBoundingClientRect();
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    // match backing store to CSS size * dpr
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+    drawCover(rect.width, rect.height);
+  }
+
+  function drawCover(w, h) {
+    // solid cover
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = COVER_OPACITY;
+    ctx.fillStyle = COVER_COLOR;
+    ctx.fillRect(0, 0, w, h);
+
+    // subtle noise for "scratch" vibe
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const n = (Math.random() * 18) - 9; // [-9..9]
+      data[i] = clamp(data[i] + n, 0, 255);
+      data[i+1] = clamp(data[i+1] + n, 0, 255);
+      data[i+2] = clamp(data[i+2] + n, 0, 255);
+      // alpha stays
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // big prompt text ON the cover layer
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#7b5a6b';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Fit text nicely
+    const lines = ["תגרדי", "אם את", "במוד"];
+    const fontSize = Math.round(Math.min(w, h) * 0.11);
+    ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial`;
+    const lineHeight = fontSize * 1.2;
+    const startY = h * 0.30;
+    lines.forEach((t, idx) => {
+      ctx.fillText(t, w/2, startY + idx * lineHeight);
+    });
+
+    // small instruction
+    ctx.globalAlpha = 0.75;
+    ctx.font = `500 ${Math.max(12, Math.round(fontSize * 0.35))}px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial`;
+    ctx.fillText("תגרדי כדי לגלות", w/2, h * 0.60);
+  }
+
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+  function getPosFromEvent(e){
+    const rect = card.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    return {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    };
+  }
+
+  function scratchAt(x, y){
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, SCRATCH_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  let scratching = false;
+
+  function onStart(e){
+    e.preventDefault();
+    scratching = true;
+    pointer.style.opacity = '1';
+    const {x,y} = getPosFromEvent(e);
+    movePointer(x,y);
+    scratchAt(x,y);
+  }
+
+  function onMove(e){
+    if(!scratching) return;
+    e.preventDefault();
+    const {x,y} = getPosFromEvent(e);
+    movePointer(x,y);
+    scratchAt(x,y);
+  }
+
+  function onEnd(){
+    scratching = false;
+    pointer.style.opacity = '0';
+  }
+
+  function movePointer(x,y){
+    // offset a bit so it feels like "coin under finger"
+    pointer.style.left = (x + 10) + 'px';
+    pointer.style.top  = (y + 14) + 'px';
+  }
+
+  // Touch events (iPhone)
+  card.addEventListener('touchstart', onStart, { passive:false });
+  card.addEventListener('touchmove',  onMove,  { passive:false });
+  card.addEventListener('touchend',   onEnd,   { passive:true });
+  card.addEventListener('touchcancel',onEnd,   { passive:true });
+
+  // Mouse support (desktop preview)
+  card.addEventListener('mousedown', (e)=>{ scratching=true; pointer.style.opacity='1'; const p=getPosFromEvent(e); movePointer(p.x,p.y); scratchAt(p.x,p.y); });
+  window.addEventListener('mousemove', (e)=>{ if(!scratching) return; const p=getPosFromEvent(e); movePointer(p.x,p.y); scratchAt(p.x,p.y); });
+  window.addEventListener('mouseup', ()=>{ scratching=false; pointer.style.opacity='0'; });
+
+  // Resize
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+})();
+</script>
+</body>
+</html>
