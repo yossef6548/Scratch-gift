@@ -167,10 +167,12 @@
     pointer.style.opacity = '1';
     const {x,y} = getPosFromEvent(e);
     movePointer(x,y);
-    // Scratch at top-left corner of hand (opposite of finger)
-    const rect = pointer.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
+    // Calculate top-left corner of hand image
+    // Hand is positioned with translate(-100%, -100%)
+    // So finger (x,y) is at bottom-right, and top-left is at (x - width, y - height)
+    const handWidth = pointer.offsetWidth;
+    const handHeight = pointer.offsetHeight;
+    scratchAt(x - handWidth, y - handHeight);
   }
 
   function onMove(e){
@@ -178,10 +180,10 @@
     e.preventDefault();
     const {x,y} = getPosFromEvent(e);
     movePointer(x,y);
-    // Scratch at top-left corner of hand (opposite of finger)
-    const rect = pointer.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
+    // Calculate top-left corner of hand image
+    const handWidth = pointer.offsetWidth;
+    const handHeight = pointer.offsetHeight;
+    scratchAt(x - handWidth, y - handHeight);
   }
 
   function onEnd(){
@@ -208,19 +210,19 @@
     pointer.style.opacity = '1';
     const p = getPosFromEvent(e);
     movePointer(p.x,p.y);
-    // Scratch at top-left corner of hand (opposite of cursor)
-    const rect = pointer.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
+    // Calculate top-left corner of hand image
+    const handWidth = pointer.offsetWidth;
+    const handHeight = pointer.offsetHeight;
+    scratchAt(p.x - handWidth, p.y - handHeight);
   });
   window.addEventListener('mousemove', (e)=>{
     if(!scratching) return;
     const p = getPosFromEvent(e);
     movePointer(p.x,p.y);
-    // Scratch at top-left corner of hand (opposite of cursor)
-    const rect = pointer.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    scratchAt(rect.left - cardRect.left, rect.top - cardRect.top);
+    // Calculate top-left corner of hand image
+    const handWidth = pointer.offsetWidth;
+    const handHeight = pointer.offsetHeight;
+    scratchAt(p.x - handWidth, p.y - handHeight);
   });
   window.addEventListener('mouseup', ()=>{
     scratching = false;
